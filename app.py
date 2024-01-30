@@ -29,11 +29,7 @@ def insert_hours(job_id, user_id, hours):
     conn.commit()
     conn.close()
 
-st.title('Datalab työt')
-jobs_df = get_jobs_data()
-st.dataframe(jobs_df)
-
-left_col, right_col = st.columns([3, 1])
+left_col, right_col = st.columns([2, 1])
 
 with right_col:
     with st.form("login_form", clear_on_submit=True):
@@ -41,6 +37,10 @@ with right_col:
         st.text_input('Salasana', type='password', max_chars=15)
         submit_button = st.form_submit_button('Kirjaudu')
         
+st.title('Datalab työt')
+jobs_df = get_jobs_data()
+st.dataframe(jobs_df)        
+
 if submit_button:
     conn = create_connection()
     cursor = conn.cursor()
