@@ -33,13 +33,14 @@ st.title('Datalab työt')
 jobs_df = get_jobs_data()
 st.dataframe(jobs_df)
 
-st.sidebar.title('User Login')
+left_col, right_col = st.columns([3, 1])
 
-with st.sidebar.form("login_form", clear_on_submit=True):
-    username = st.text_input('Username', max_chars=20)
-    password = st.text_input('Password', type='password', max_chars=20)
-    submit_button = st.form_submit_button('Login')
-
+with right_col:
+    with st.form("login_form", clear_on_submit=True):
+        st.text_input('Käyttäjänimi', max_chars=15)
+        st.text_input('Salasana', type='password', max_chars=15)
+        submit_button = st.form_submit_button('Kirjaudu')
+        
 if submit_button:
     conn = create_connection()
     cursor = conn.cursor()
