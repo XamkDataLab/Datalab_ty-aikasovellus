@@ -24,7 +24,7 @@ def get_jobs_data():
 def insert_hours(job_id, user_id, hours):
     conn = create_connection()
     cursor = conn.cursor()
-    query = "INSERT INTO JobHours (JobID, Username, Hours) VALUES (?, ?, ?)"
+    query = "INSERT INTO JobHours (Username, JobID, Hours) VALUES (?, ?, ?)"
     cursor.execute(query, job_id, user_id, hours)
     conn.commit()
     conn.close()
