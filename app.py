@@ -64,7 +64,7 @@ if st.session_state.selected_job_id is not None:
 if submit_button:
     conn = create_connection()
     cursor = conn.cursor()
-    hashed_password = hash_password(password_input)  # Use the input from the form
+    hashed_password = hash_password(password_input) 
     cursor.execute("SELECT * FROM Users WHERE Username = ? AND Password = ?", username_input, hashed_password)
     user = cursor.fetchone()
     conn.close()
