@@ -21,7 +21,7 @@ def get_jobs_data():
     df = pd.read_sql(query, conn)
     conn.close()
     return df
-
+    
 def insert_hours(username, job_id, hours):
     conn = create_connection()
     cursor = conn.cursor()
@@ -31,11 +31,11 @@ def insert_hours(username, job_id, hours):
     conn.close()
 
 if 'selected_job_id' not in st.session_state:
-    st.session_state.selected_job_id = None
+    st.session_state['selected_job_id'] = None
 if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
+    st.session_state['logged_in'] = False
 if 'user' not in st.session_state:
-    st.session_state.user = None
+    st.session_state['user'] = None
 
 st.title('Datalab Työt')
 
@@ -44,27 +44,28 @@ left_column, right_column = st.columns([3, 1])
 with left_column:
     jobs_df = get_jobs_data()
     for index, row in jobs_df.iterrows():
-        st.subheader(row['JobName']) 
+        st.subheader(row['JobName'])
         if st.button("Valitse työ", key=f"select_job_{row['JobID']}"):
             st.session_state.selected_job_id = row['JobID']
-            selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
-            st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
             
-            if st.session_state.logged_in:
-                hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_{row['JobID']}")
-                if st.button("Lisää tunnit", key=f"add_hours_{row['JobID']}"):
-                    username = st.session_state.user[0]  
-                    job_id = int(selected_job['JobID'])  
-                    insert_hours(username, job_id, hours)
-                    st.success("Tunnit kirjattu onnistuneesti")
-        st.divider()  # Add a divider after each job
+    if st.session_state.selected_job_id is not None:
+        selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
+        st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
+        
+        if st.session_state.logged_in:
+            hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key="hours_input")
+            if st.button("Lisää tunnit", key="add_hours"):
+                username = st.session_state.user[0]
+                job_id = int(selected_job['JobID'])
+                insert_hours(username, job_id, hours)
+                st.success("Tunnit kirjattu onnistuneesti")
 
 with right_column:
     if not st.session_state.logged_in:
-        st.subheader("Kirjaudu sisään")  
-        username_input = st.text_input('Käyttäjänimi', max_chars=15)
-        password_input = st.text_input('Salasana', type='password', max_chars=15)
-        submit_button = st.button('Kirjaudu')
+        st.subheader("Kirjaudu sisään")
+        username_input = st.text_input('Käyttäjänimi', key='username_input')
+        password_input = st.text_input('Salasana', type='password', key='password_input')
+        submit_button = st.button('Kirjaudu', key='login_button')
         
         if submit_button:
             conn = create_connection()
@@ -81,5 +82,5 @@ with right_column:
             else:
                 st.error('Login failed. Check your username and password.')
     else:
-        st.markdown("<h2 style='color: green;'>Olet kirjautuneena sisään</h2>", unsafe_allow_html=True)
+        st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
 
