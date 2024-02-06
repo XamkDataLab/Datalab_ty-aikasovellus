@@ -46,30 +46,27 @@ jobs_df = get_jobs_data()
 
 with left_column:
     for index, row in jobs_df.iterrows():
-        with st.container():  # Use a container to group each job's title and optional description
+        with st.container():  
             st.subheader(row['JobName'])
             select_button = st.button("Valitse työ", key=f"select_job_{row['JobID']}")
-            
-            # If this job is selected, display its description
+
             if st.session_state.selected_job_id == row['JobID']:
                 st.write(f"**Työn Kuvaus:** {row['JobDescription']}")
+
+                if st.session_state.logged_in:
+                    hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_input_{row['JobID']}")
+                    if st.button("Lisää tunnit", key=f"add_hours_{row['JobID']}"):
+                        username = st.session_state.user[0]
+                        job_id = row['JobID']
+                        insert_hours(username, job_id, hours)
+                        st.success("Tunnit kirjattu onnistuneesti")
             
-            # If the button for this job is clicked, update the selected job ID
+            # Update selected job ID when a job selection button is clicked
             if select_button:
                 st.session_state.selected_job_id = row['JobID']
                 st.experimental_rerun()
 
         st.divider()
-
-# Handle hours logging functionality
-if st.session_state.logged_in and st.session_state.selected_job_id is not None:
-    with left_column:  # Assuming you want the hours input also in the left column
-        hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key="hours_input")
-        if st.button("Lisää tunnit", key="add_hours"):
-            username = st.session_state.user[0]
-            job_id = st.session_state.selected_job_id
-            insert_hours(username, job_id, hours)
-            st.success("Tunnit kirjattu onnistuneesti")
 
 with right_column:
     if not st.session_state.logged_in:
