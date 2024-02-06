@@ -40,9 +40,33 @@ if 'user' not in st.session_state:
 
 st.title('Datalab Työt')
 
-left_column, right_column = st.columns([3, 1])
+# Move login to the top
+if not st.session_state.logged_in:
+    cols = st.columns([1, 1])
+    with cols[0]:
+        username_input = st.text_input('Käyttäjänimi', key='username')
+    with cols[1]:
+        password_input = st.text_input('Salasana', type='password', key='password')
+    if st.button('Kirjaudu', key='login'):
+        conn = create_connection()
+        cursor = conn.cursor()
+        hashed_password = hash_password(password_input)
+        cursor.execute("SELECT * FROM Users WHERE Username = ? AND Password = ?", username_input, hashed_password)
+        user = cursor.fetchone()
+        conn.close()
+        
+        if user:
+            st.session_state.logged_in = True
+            st.session_state.user = user
+            st.experimental_rerun()
+        else:
+            st.error('Login failed. Check your username and password.')
+else:
+    st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
 
 jobs_df = get_jobs_data()
+
+left_column, right_column = st.columns([3, 1])
 
 with left_column:
     for index, row in jobs_df.iterrows():
@@ -68,25 +92,4 @@ with left_column:
 
         st.divider()
 
-with right_column:
-    if not st.session_state.logged_in:
-        st.subheader("Kirjaudu sisään")
-        username_input = st.text_input('Käyttäjänimi', key='username_input')
-        password_input = st.text_input('Salasana', type='password', key='password_input')
-        if st.button('Kirjaudu', key='login_button'):
-            conn = create_connection()
-            cursor = conn.cursor()
-            hashed_password = hash_password(password_input)
-            cursor.execute("SELECT * FROM Users WHERE Username = ? AND Password = ?", username_input, hashed_password)
-            user = cursor.fetchone()
-            conn.close()
-            
-            if user:
-                st.session_state.logged_in = True
-                st.session_state.user = user
-                st.experimental_rerun()
-            else:
-                st.error('Login failed. Check your username and password.')
-    else:
-        st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
 
