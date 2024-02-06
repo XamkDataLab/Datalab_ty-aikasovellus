@@ -38,12 +38,14 @@ if 'user' not in st.session_state:
     st.session_state['user'] = None
 
 if not st.session_state.logged_in:
-    cols = st.columns([1, 1])
-    with cols[0]:
+    # Use columns to create a more compact layout
+    login_cols = st.columns([1, 2, 2, 1])  # Adjust the middle columns where inputs will be placed
+    with login_cols[1]:  # Smaller username field
         username_input = st.text_input('Käyttäjänimi', key='username')
-    with cols[1]:
+    with login_cols[2]:  # Smaller password field
         password_input = st.text_input('Salasana', type='password', key='password')
-    if st.button('Kirjaudu', key='login'):
+    # Place the login button centrally below the fields
+    if st.button('Kirjaudu', key='login', on_click=None, args=None, kwargs=None):
         conn = create_connection()
         cursor = conn.cursor()
         hashed_password = hash_password(password_input)
@@ -59,7 +61,7 @@ if not st.session_state.logged_in:
             st.error('Login failed. Check your username and password.')
 else:
     st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
-    
+
 st.title('Datalab Työt')
 
 jobs_df = get_jobs_data()
@@ -83,10 +85,12 @@ with left_column:
                         insert_hours(username, job_id, hours)
                         st.success("Tunnit kirjattu onnistuneesti")
             
+            # Update selected job ID when a job selection button is clicked
             if select_button:
                 st.session_state.selected_job_id = row['JobID']
                 st.experimental_rerun()
 
         st.divider()
+
 
 
