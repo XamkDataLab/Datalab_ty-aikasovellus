@@ -30,6 +30,7 @@ def insert_hours(username, job_id, hours):
     conn.commit()
     conn.close()
 
+# Initialize session state variables
 if 'selected_job_id' not in st.session_state:
     st.session_state['selected_job_id'] = None
 if 'logged_in' not in st.session_state:
@@ -41,21 +42,28 @@ st.title('Datalab Työt')
 
 left_column, right_column = st.columns([3, 1])
 
+jobs_df = get_jobs_data()
+
 with left_column:
-    jobs_df = get_jobs_data()
     for index, row in jobs_df.iterrows():
-        st.subheader(row['JobName'])
-        if st.button("Valitse työ", key=f"select_job_{row['JobID']}"):
-            st.session_state.selected_job_id = row['JobID']
-            st.experimental_rerun()
+        with st.container():  # Use a container to group each job's title and optional description
+            st.subheader(row['JobName'])
+            select_button = st.button("Valitse työ", key=f"select_job_{row['JobID']}")
+            
+            # If this job is selected, display its description
+            if st.session_state.selected_job_id == row['JobID']:
+                st.write(f"**Työn Kuvaus:** {row['JobDescription']}")
+            
+            # If the button for this job is clicked, update the selected job ID
+            if select_button:
+                st.session_state.selected_job_id = row['JobID']
+                st.experimental_rerun()
 
-# Display the description of the selected job
-if st.session_state.selected_job_id is not None:
-    selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
-    st.write(f"**Valittu työ:** {selected_job['JobName']}")
-    st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
+        st.divider()
 
-    if st.session_state.logged_in:
+# Handle hours logging functionality
+if st.session_state.logged_in and st.session_state.selected_job_id is not None:
+    with left_column:  # Assuming you want the hours input also in the left column
         hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key="hours_input")
         if st.button("Lisää tunnit", key="add_hours"):
             username = st.session_state.user[0]
