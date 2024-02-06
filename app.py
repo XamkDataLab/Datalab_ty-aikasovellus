@@ -37,30 +37,31 @@ if 'logged_in' not in st.session_state:
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-st.title('Datalab työt')
+st.title('Datalab Työt')
 
 left_column, right_column = st.columns([3, 1])
 
 with left_column:
     jobs_df = get_jobs_data()
     for index, row in jobs_df.iterrows():
-        st.write(f"{row['JobName']}")
-        if st.button("Näytä tiedot", key=f"details_{row['JobID']}"):
+        st.subheader(row['JobName'])  # Change to subheader for job titles
+        if st.button("Valitse työ", key=f"select_job_{row['JobID']}"):
             st.session_state.selected_job_id = row['JobID']
             selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
-            st.write(f"Työn Kuvaus: {selected_job['JobDescription']}")
+            st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
             
             if st.session_state.logged_in:
                 hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_{row['JobID']}")
                 if st.button("Lisää tunnit", key=f"add_hours_{row['JobID']}"):
-                    username = st.session_state.user[0]  # Assuming username is the first item in the user tuple
-                    job_id = int(selected_job['JobID'])  # Convert JobID to int
+                    username = st.session_state.user[0]  
+                    job_id = int(selected_job['JobID'])  
                     insert_hours(username, job_id, hours)
                     st.success("Tunnit kirjattu onnistuneesti")
+        st.divider()  # Add a divider after each job
 
 with right_column:
     if not st.session_state.logged_in:
-        st.write("Kirjaudu sisään")  # Title for login section
+        st.subheader("Kirjaudu sisään")  # Use subheader for login section title
         username_input = st.text_input('Käyttäjänimi', max_chars=15)
         password_input = st.text_input('Salasana', type='password', max_chars=15)
         submit_button = st.button('Kirjaudu')
@@ -80,4 +81,4 @@ with right_column:
             else:
                 st.error('Login failed. Check your username and password.')
     else:
-        st.write("Olet kirjautunut sisään")
+        st.subheader("Olet kirjautunut sisään")  # Use subheader for logged-in message
