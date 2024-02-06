@@ -45,19 +45,17 @@ with left_column:
     jobs_df = get_jobs_data()
     for index, row in jobs_df.iterrows():
         st.subheader(row['JobName'])
-        st.caption(row['JobDescription'])  # Display the job description directly beneath the job title
         if st.button("Valitse työ", key=f"select_job_{row['JobID']}"):
             st.session_state.selected_job_id = row['JobID']
             st.experimental_rerun()
-        st.divider()  # Add a visual divider between jobs
 
-# This section is now redundant, so you might consider removing or adjusting it
-# if st.session_state.selected_job_id is not None:
-#     selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
-#     st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
+# Display the description of the selected job
+if st.session_state.selected_job_id is not None:
+    selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
+    st.write(f"**Valittu työ:** {selected_job['JobName']}")
+    st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
 
-if st.session_state.logged_in:
-    with left_column:  # Assuming you want the hours input to also be in the left column now
+    if st.session_state.logged_in:
         hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key="hours_input")
         if st.button("Lisää tunnit", key="add_hours"):
             username = st.session_state.user[0]
@@ -86,3 +84,4 @@ with right_column:
                 st.error('Login failed. Check your username and password.')
     else:
         st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
+
