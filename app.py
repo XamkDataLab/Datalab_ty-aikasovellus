@@ -21,7 +21,7 @@ def get_jobs_data():
     df = pd.read_sql(query, conn)
     conn.close()
     return df
-    
+
 def insert_hours(username, job_id, hours):
     conn = create_connection()
     cursor = conn.cursor()
@@ -44,7 +44,7 @@ left_column, right_column = st.columns([3, 1])
 with left_column:
     jobs_df = get_jobs_data()
     for index, row in jobs_df.iterrows():
-        st.subheader(row['JobName'])  # Change to subheader for job titles
+        st.subheader(row['JobName']) 
         if st.button("Valitse työ", key=f"select_job_{row['JobID']}"):
             st.session_state.selected_job_id = row['JobID']
             selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
@@ -61,7 +61,7 @@ with left_column:
 
 with right_column:
     if not st.session_state.logged_in:
-        st.subheader("Kirjaudu sisään")  # Use subheader for login section title
+        st.subheader("Kirjaudu sisään")  
         username_input = st.text_input('Käyttäjänimi', max_chars=15)
         password_input = st.text_input('Salasana', type='password', max_chars=15)
         submit_button = st.button('Kirjaudu')
@@ -81,4 +81,5 @@ with right_column:
             else:
                 st.error('Login failed. Check your username and password.')
     else:
-        st.subheader("Olet kirjautunut sisään")  # Use subheader for logged-in message
+        st.markdown("<h2 style='color: green;'>Olet kirjautuneena sisään</h2>", unsafe_allow_html=True)
+
