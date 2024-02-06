@@ -30,7 +30,6 @@ def insert_hours(username, job_id, hours):
     conn.commit()
     conn.close()
 
-# Initialize session state variables
 if 'selected_job_id' not in st.session_state:
     st.session_state['selected_job_id'] = None
 if 'logged_in' not in st.session_state:
@@ -38,9 +37,6 @@ if 'logged_in' not in st.session_state:
 if 'user' not in st.session_state:
     st.session_state['user'] = None
 
-st.title('Datalab Työt')
-
-# Move login to the top
 if not st.session_state.logged_in:
     cols = st.columns([1, 1])
     with cols[0]:
@@ -63,6 +59,8 @@ if not st.session_state.logged_in:
             st.error('Login failed. Check your username and password.')
 else:
     st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
+    
+st.title('Datalab Työt')
 
 jobs_df = get_jobs_data()
 
@@ -85,7 +83,6 @@ with left_column:
                         insert_hours(username, job_id, hours)
                         st.success("Tunnit kirjattu onnistuneesti")
             
-            # Update selected job ID when a job selection button is clicked
             if select_button:
                 st.session_state.selected_job_id = row['JobID']
                 st.experimental_rerun()
