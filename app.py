@@ -47,27 +47,26 @@ with left_column:
         st.subheader(row['JobName'])
         if st.button("Valitse työ", key=f"select_job_{row['JobID']}"):
             st.session_state.selected_job_id = row['JobID']
-            
-    if st.session_state.selected_job_id is not None:
-        selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
-        st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
-        
-        if st.session_state.logged_in:
-            hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key="hours_input")
-            if st.button("Lisää tunnit", key="add_hours"):
-                username = st.session_state.user[0]
-                job_id = int(selected_job['JobID'])
-                insert_hours(username, job_id, hours)
-                st.success("Tunnit kirjattu onnistuneesti")
+            st.experimental_rerun()
+
+if st.session_state.selected_job_id is not None:
+    selected_job = jobs_df[jobs_df['JobID'] == st.session_state.selected_job_id].iloc[0]
+    st.write(f"**Työn Kuvaus:** {selected_job['JobDescription']}")
+    
+    if st.session_state.logged_in:
+        hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key="hours_input")
+        if st.button("Lisää tunnit", key="add_hours"):
+            username = st.session_state.user[0]
+            job_id = st.session_state.selected_job_id
+            insert_hours(username, job_id, hours)
+            st.success("Tunnit kirjattu onnistuneesti")
 
 with right_column:
     if not st.session_state.logged_in:
         st.subheader("Kirjaudu sisään")
         username_input = st.text_input('Käyttäjänimi', key='username_input')
         password_input = st.text_input('Salasana', type='password', key='password_input')
-        submit_button = st.button('Kirjaudu', key='login_button')
-        
-        if submit_button:
+        if st.button('Kirjaudu', key='login_button'):
             conn = create_connection()
             cursor = conn.cursor()
             hashed_password = hash_password(password_input)
@@ -83,4 +82,3 @@ with right_column:
                 st.error('Login failed. Check your username and password.')
     else:
         st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
-
