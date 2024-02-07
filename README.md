@@ -1,0 +1,1 @@
+Sovellus Xamkin data-analytiikkakoulutuksen datalabran työtehtävien ja työajan seurantaan
