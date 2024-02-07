@@ -70,7 +70,7 @@ with left_column:
     for index, row in jobs_df.iterrows():
         with st.container():  
             st.subheader(row['JobName'])
-            select_button = st.button("Tarkastele työtä", key=f"select_job_{row['JobID']}")
+            select_button = st.button("Tarkemmat tiedot", key=f"select_job_{row['JobID']}")
 
             if st.session_state.selected_job_id == row['JobID']:
                 st.write(f"**Työn Kuvaus:** {row['JobDescription']}")
