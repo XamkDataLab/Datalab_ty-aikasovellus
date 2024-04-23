@@ -64,19 +64,23 @@ def insert_hours(username, job_id, hours):
     conn.commit()
     conn.close()
 
+# Initialize session state variables
+if 'job_hours' not in st.session_state:
+    st.session_state['job_hours'] = {}
+
 if 'selected_job_id' not in st.session_state:
     st.session_state['selected_job_id'] = None
+
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
+
 if 'user' not in st.session_state:
     st.session_state['user'] = None
 
+# User login logic
 if not st.session_state.logged_in:
-    cols = st.columns([1, 1])
-    with cols[0]:
-        username_input = st.text_input('Käyttäjänimi', key='username')
-    with cols[1]:
-        password_input = st.text_input('Salasana', type='password', key='password')
+    username_input = st.text_input('Käyttäjänimi', key='username')
+    password_input = st.text_input('Salasana', type='password', key='password')
     if st.button('Kirjaudu', key='login'):
         conn = create_connection()
         cursor = conn.cursor()
@@ -95,8 +99,8 @@ else:
     st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
 
 st.title('Datalab Työt')
-st.markdown('Tässä näkyvät Data-analytiikkakoulutuksen datalabrassa olevat työt. Jos olet kiinnostunut tekemään harjoittelun datalabrassa, ota yhteyttä tällä lomakkeella: [datalab työnhakulomake](https://forms.office.com/Pages/ResponsePage.aspx?id=vNbINpjpkEGmn8E0JAY0Y0qH5dIS22RHnqhKgPDmZkNUQU83UlM2VkVHQkxIVUg4RzZJRVBMM0wwRC4u). Kirjautuneet käyttäjät voivat tarkastella aineistoja sekä lisätä tunteja työtehtäville', unsafe_allow_html=True)
-st.divider()
+st.markdown('Tässä näkyvät Data-analytiikkakoulutuksen datalabrassa olevat työt.')
+
 jobs_df = get_jobs_data()
 
 with st.container():
@@ -108,24 +112,23 @@ with st.container():
             st.write(f"**Työn Kuvaus:** {row['JobDescription']}")
 
             if st.session_state.logged_in:
-                if f"hours_{row['JobID']}" not in st.session_state:
-                    st.session_state[f"hours_{row['JobID']}"] = 0.0
+                job_id_key = f"hours_{row['JobID']}"
+                if job_id_key not in st.session_state.job_hours:
+                    st.session_state.job_hours[job_id_key] = 0.0
 
-                def update_hours():
-                    st.session_state[f"hours_{row['JobID']}"] = hours
-
-                hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_input_{row['JobID']}", value=st.session_state[f"hours_{row['JobID']}"], on_change=update_hours)
+                hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_input_{row['JobID']}", value=st.session_state.job_hours[job_id_key])
+                st.session_state.job_hours[job_id_key] = hours
 
                 if st.button("Lisää tunnit", key=f"add_hours_{row['JobID']}"):
                     username = st.session_state.user[0]
-                    job_id = row['JobID']
-                    insert_hours(username, job_id, hours)
+                    insert_hours(username, row['JobID'], hours)
                     st.success("Tunnit kirjattu onnistuneesti")
+                    st.session_state.job_hours[job_id_key] = 0.0  
 
         if st.session_state.logged_in and not pd.isna(row['mainTable']):
             if st.button('Näytä data', key=f"sample_data_{row['JobID']}"):
                 main_table_df, total_row_count, column_count = get_job_main_table_data(row['JobID'])
-                if main_table_df is not None and not main_table_df.empty:  # Correctly unpack and then check .empty
+                if main_table_df is not None and not main_table_df.empty:
                     st.markdown(f"<b style='font-size: 20px;'>Kokonaisrivien määrä: {total_row_count}, Sarakkeiden määrä: {column_count}</b>", unsafe_allow_html=True)
                     st.write('Taulukossa 100 ensimmäistä riviä')
                     st.dataframe(main_table_df)
