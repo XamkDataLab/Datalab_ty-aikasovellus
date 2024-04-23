@@ -32,6 +32,7 @@ def get_jobs_data():
     return df
 
 def get_job_main_table_data(job_id):
+    jobs_df = get_jobs_data()
     if job_id in jobs_df['JobID'].values:
         main_table_name = jobs_df.loc[jobs_df['JobID'] == job_id, 'mainTable'].values[0]
         if pd.isna(main_table_name):
@@ -55,7 +56,6 @@ def get_job_main_table_data(job_id):
         print(f"No mainTable found for job_id: {job_id}")
         return None, None, None
 
-    
 def insert_hours(username, job_id, hours):
     conn = create_connection()
     cursor = conn.cursor()
@@ -108,10 +108,15 @@ with st.container():
             st.write(f"**Työn Kuvaus:** {row['JobDescription']}")
 
             if st.session_state.logged_in:
-                hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_input_{row['JobID']}")
+                if f"hours_{row['JobID']}" not in st.session_state:
+                    st.session_state[f"hours_{row['JobID']}"] = 0.0
+
+                hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_input_{row['JobID']}", value=st.session_state[f"hours_{row['JobID']}"])
+
                 if st.button("Lisää tunnit", key=f"add_hours_{row['JobID']}"):
                     username = st.session_state.user[0]
                     job_id = row['JobID']
+                    st.session_state[f"hours_{row['JobID']}"] = hours  # update session state
                     insert_hours(username, job_id, hours)
                     st.success("Tunnit kirjattu onnistuneesti")
 
@@ -120,9 +125,8 @@ with st.container():
                 main_table_df, total_row_count, column_count = get_job_main_table_data(row['JobID'])
                 if main_table_df is not None and not main_table_df.empty:  # Correctly unpack and then check .empty
                     st.markdown(f"<b style='font-size: 20px;'>Kokonaisrivien määrä: {total_row_count}, Sarakkeiden määrä: {column_count}</b>", unsafe_allow_html=True)
-                    st.write('taulukossa 100 ensimmäistä riviä')
+                    st.write('Taulukossa 100 ensimmäistä riviä')
                     st.dataframe(main_table_df)
-                   
                 else:
                     st.write("Ei esimerkkitietoja saatavilla.")
 
