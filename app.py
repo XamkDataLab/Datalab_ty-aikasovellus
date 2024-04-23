@@ -111,12 +111,14 @@ with st.container():
                 if f"hours_{row['JobID']}" not in st.session_state:
                     st.session_state[f"hours_{row['JobID']}"] = 0.0
 
-                hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_input_{row['JobID']}", value=st.session_state[f"hours_{row['JobID']}"])
+                def update_hours():
+                    st.session_state[f"hours_{row['JobID']}"] = hours
+
+                hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_input_{row['JobID']}", value=st.session_state[f"hours_{row['JobID']}"], on_change=update_hours)
 
                 if st.button("Lisää tunnit", key=f"add_hours_{row['JobID']}"):
                     username = st.session_state.user[0]
                     job_id = row['JobID']
-                    st.session_state[f"hours_{row['JobID']}"] = hours  # update session state
                     insert_hours(username, job_id, hours)
                     st.success("Tunnit kirjattu onnistuneesti")
 
