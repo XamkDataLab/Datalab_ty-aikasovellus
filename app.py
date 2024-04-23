@@ -53,7 +53,7 @@ def get_job_main_table_data(job_id):
         
         return top_df, total_row_count, column_count
     else:
-        print(f"No mainTable found for job_id: {job_id}")
+        st.error(f"No mainTable found for job_id: {job_id}")
         return None, None, None
 
 def insert_hours(username, job_id, hours):
@@ -64,53 +64,57 @@ def insert_hours(username, job_id, hours):
     conn.commit()
     conn.close()
 
-# User login logic
+# Initialization
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
-    username_input = st.text_input('Käyttäjänimi', key='username')
-    password_input = st.text_input('Salasana', type='password', key='password')
-    if st.button('Kirjaudu', key='login'):
-        conn = create_connection()
-        cursor = conn.cursor()
-        hashed_password = hash_password(password_input)
-        cursor.execute("SELECT * FROM Users WHERE Username = ? AND Password = ?", username_input, hashed_password)
-        user = cursor.fetchone()
-        conn.close()
-        if user:
-            st.session_state.logged_in = True
-            st.session_state.user = user
-        else:
-            st.error('Kirjautuminen epäonnistui. Tarkasta käyttäjätunnus ja salasana.')
+if 'user' not in st.session_state:
+    st.session_state.user = None
+
+# User login logic
+username_input = st.text_input('Käyttäjänimi', key='username')
+password_input = st.text_input('Salasana', type='password', key='password')
+if st.button('Kirjaudu', key='login'):
+    conn = create_connection()
+    cursor = conn.cursor()
+    hashed_password = hash_password(password_input)
+    cursor.execute("SELECT * FROM Users WHERE Username = ? AND Password = ?", username_input, hashed_password)
+    user = cursor.fetchone()
+    conn.close()
+    if user:
+        st.session_state.logged_in = True
+        st.session_state.user = user
+        st.experimental_rerun()
+    else:
+        st.error('Kirjautuminen epäonnistui. Tarkasta käyttäjätunnus ja salasana.')
 
 if st.session_state.logged_in:
     st.subheader(f"Olet kirjautunut sisään: {st.session_state.user[0]}")
 
-st.title('Datalab Työt')
+    st.title('Datalab Työt')
+    jobs_df = get_jobs_data()
 
-jobs_df = get_jobs_data()
+    with st.container():
+        for index, row in jobs_df.iterrows():
+            st.subheader(row['JobName'])
+            if st.session_state.logged_in:
+                with st.form(key=f"hours_form_{row['JobID']}"):
+                    st.write(f"**Työn Kuvaus:** {row['JobDescription']}")
+                    hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_{row['JobID']}")
+                    submit_button = st.form_submit_button(label="Lisää tunnit")
 
-with st.container():
-    for index, row in jobs_df.iterrows():
-        st.subheader(row['JobName'])
-        with st.form(key=f"hours_form_{row['JobID']}"):
-            st.write(f"**Työn Kuvaus:** {row['JobDescription']}")
-            hours = st.number_input("Tehdyt työtunnit", min_value=0.0, max_value=100.0, step=0.5, key=f"hours_{row['JobID']}")
-            submit_button = st.form_submit_button(label="Lisää tunnit")
-            
-            if submit_button:
-                username = st.session_state.user[0]
-                job_id = row['JobID']
-                insert_hours(username, job_id, hours)
-                st.success("Tunnit kirjattu onnistuneesti")
-        
-        if st.session_state.logged_in and not pd.isna(row['mainTable']):
-            if st.button('Näytä data', key=f"sample_data_{row['JobID']}"):
-                main_table_df, total_row_count, column_count = get_job_main_table_data(row['JobID'])
-                if main_table_df is not None and not main_table_df.empty:
-                    st.markdown(f"<b style='font-size: 20px;'>Kokonaisrivien määrä: {total_row_count}, Sarakkeiden määrä: {column_count}</b>", unsafe_allow_html=True)
-                    st.dataframe(main_table_df)
-                else:
-                    st.write("Ei esimerkkitietoja saatavilla.")
+                    if submit_button:
+                        insert_hours(st.session_state.user[0], row['JobID'], hours)
+                        st.success("Tunnit kirjattu onnistuneesti")
+                
+                if not pd.isna(row['mainTable']):
+                    if st.button('Näytä data', key=f"sample_data_{row['JobID']}"):
+                        main_table_df, total_row_count, column_count = get_job_main_table_data(row['JobID'])
+                        if main_table_df is not None and not main_table_df.empty:
+                            st.markdown(f"<b style='font-size: 20px;'>Kokonaisrivien määrä: {total_row_count}, Sarakkeiden määrä: {column_count}</b>", unsafe_allow_html=True)
+                            st.dataframe(main_table_df)
+                        else:
+                            st.write("Ei esimerkkitietoja saatavilla.")
 
-        st.divider()
-
+            st.divider()
+else:
+    st.warning("Kirjaudu sisään nähdäksesi sisällön.")
