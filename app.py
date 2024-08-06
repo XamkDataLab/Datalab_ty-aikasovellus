@@ -84,7 +84,7 @@ if st.button('Kirjaudu', key='login'):
     if user:
         st.session_state.logged_in = True
         st.session_state.user = user
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.error('Kirjautuminen epäonnistui. Tarkasta käyttäjätunnus ja salasana.')
 
