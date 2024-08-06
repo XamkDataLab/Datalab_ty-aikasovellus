@@ -71,6 +71,7 @@ if 'user' not in st.session_state:
     st.session_state.user = None
 
 # User login logic
+st.write(st.__version__)
 username_input = st.text_input('Käyttäjänimi', key='username')
 password_input = st.text_input('Salasana', type='password', key='password')
 if st.button('Kirjaudu', key='login'):
